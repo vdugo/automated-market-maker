@@ -10,7 +10,7 @@ describe('AMM', () =>
 {
     // global variables for AMM tests
 
-    let accounts, deployer, liquidityProvider
+    let accounts, deployer, liquidityProvider, investor1, investor2
 
     let token1, token2, amm
 
@@ -21,6 +21,8 @@ describe('AMM', () =>
         accounts = await ethers.getSigners()
         deployer = accounts[0]
         liquidityProvider = accounts[1]
+        investor1 = accounts[2]
+        investor2 = accounts[3]
 
         // Deploy Token contracts to the blockchain
         const Token = await ethers.getContractFactory('Token')
@@ -32,6 +34,16 @@ describe('AMM', () =>
         let transaction = await token1.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
         await transaction.wait()
         transaction = await token2.connect(deployer).transfer(liquidityProvider.address, tokens(100000))
+        await transaction.wait()
+
+        // Send tokens to investor1
+        // in our scenario investor1 is only going to have token1 tokens and buy token2 tokens
+        transaction = await token1.connect(deployer).transfer(investor1.address, tokens(100000))
+        await transaction.wait()
+
+        // Send tokens to investor2
+        // in our scenario investor2 is only going to have token2 tokens and buy token1 tokens
+        transaction = await token2.connect(deployer).transfer(investor2.address, tokens(100000))
         await transaction.wait()
 
         // Deploy AMM contract to the blockchain with the already deployed

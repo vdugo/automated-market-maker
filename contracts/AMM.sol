@@ -84,4 +84,41 @@ contract AMM
     {
         token1Amount = (token1Balance * _token2Amount) / token2Balance;
     }
+
+    function calculateToken1Swap(uint256 _token1Amount) public view returns(uint256 token2Amount)
+    {
+        // Calculate the amount of token2 that we are going to GET
+        uint256 token1After = token1Balance + _token1Amount;
+        uint256 token2After = K / token1After;
+        token2Amount = token2Balance - token2After;
+
+        // Don't let pool go to 0
+        if (token2Amount == token2Balance)
+        {
+            token2Amount--;
+        }
+
+        require(token2Amount < token2Balance, "swap cannot exceed pool balance");
+
+        return token2Amount;
+    }
+
+    function swapToken1(uint256 _token1Amount) external returns(uint256 token2Amount)
+    {
+        token2Amount = calculateToken1Swap(_token1Amount);
+
+
+
+        // Do the swap
+        // 1. Transfer token1 tokens out of user wallet
+        token1.transferFrom(msg.sender, address(this), _token1Amount);
+        // 2. Update token1 balance in the contract
+        token1Balance += _token1Amount;
+        // 3. Update token2 balance in the contract
+        token2Balance -= token2Amount;
+        // 4. Transfer token2 tokens from contract to user wallet
+        token2.transfer(msg.sender, token2Amount);
+
+        // emit an event
+    }
 }
