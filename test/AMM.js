@@ -128,6 +128,27 @@ describe('AMM', () =>
 
             // The pool should have a total of 150 shares now
             expect(await amm.totalShares()).to.equal(tokens(150))
+
+            // Investor1 swaps
+
+            // investor1 approves the exchange to control all 100k tokens
+            transaction = await token1.connect(investor1).approve(amm.address, tokens(100000))
+            await transaction.wait()
+
+            // check investor1 balance before swap
+            balance = await token1.balanceOf(investor1.address)
+
+            // estimate amount of tokens investor1 will receive
+            // after swapping token1: include slippage
+            estimate = await amm.calculateToken1Swap(tokens(1))
+
+            // investor1 swaps 1 token1
+            transaction = await amm.connect(investor1).swapToken1(tokens(1))
+            result = await transaction.wait()
+
+            // check investor1 balance after swap
+            balance = await token2.balanceOf(investor1.address)
+            expect(estimate).to.equal(balance)
             
         })
     })
