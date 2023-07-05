@@ -6,6 +6,9 @@ const tokens = (n) =>
     return ethers.utils.parseUnits(n.toString(), 'ether')
 }
 
+const ether = tokens
+const shares = tokens
+
 describe('AMM', () =>
 {
     // global variables for AMM tests
@@ -247,6 +250,39 @@ describe('AMM', () =>
             expect(await token2.balanceOf(amm.address)).to.equal(await amm.token2Balance())
 
             console.log(`Price after swapping: ${await amm.token2Balance() / await amm.token1Balance()}`)
+
+
+            // removing liquidity
+
+            console.log(`AMM token1 balance: ${ethers.utils.formatEther(await amm.token1Balance())}`)
+            console.log(`AMM token2 balance: ${ethers.utils.formatEther(await amm.token2Balance())}`)
+
+            // check LP balance before removing tokens
+            balance = await token1.balanceOf(liquidityProvider.address)
+            console.log(`Liquidity provider token1 balance before removing funds: ${ethers.utils.formatEther(balance)}`)
+
+            balance = await token2.balanceOf(liquidityProvider.address)
+            console.log(`Liquidity provider token2 balance before removing unds: ${ethers.utils.formatEther(balance)}`)
+
+            transaction = await amm.connect(liquidityProvider).removeLiquidity(shares(50)) // 50 shares
+            await transaction.wait()
+            
+            // check LP balance after removing funds
+            balance = await token1.balanceOf(liquidityProvider.address)
+            console.log(`Liquidity provider token1 balance after removing funds: ${ethers.utils.formatEther(balance)}`)
+
+            balance = await token2.balanceOf(liquidityProvider.address)
+            console.log(`Liquidity provider token2 balance after removing funds: ${ethers.utils.formatEther(balance)}`)
+
+            // LP should have 0 shares
+            expect(await amm.shares(liquidityProvider.address)).to.equal(0)
+
+            // Deployer should have 100 shares
+            expect(await amm.shares(deployer.address)).to.equal(shares(100))
+
+            // Check that total number of shares is 100
+            expect(await amm.totalShares()).to.equal(shares(100))
+
         })
     })
 })
