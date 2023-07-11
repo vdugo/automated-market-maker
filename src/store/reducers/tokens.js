@@ -14,7 +14,7 @@ export const tokens = createSlice({
         setSymbols: (state, action) => {
             state.symbols = action.payload
         },
-        balancedLoaded: (state, action) => {
+        balancesLoaded: (state, action) => {
             state.balances = action.payload
         }
     }
